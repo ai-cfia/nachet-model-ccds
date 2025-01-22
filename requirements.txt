@@ -1,0 +1,8 @@
+ruff
+isort
+loguru
+pip
+python-dotenv
+tqdm
+typer
+-e .

@@ -7,7 +7,7 @@ services:
       additional_contexts:
         project: ../../
     image: pytorch-gpu-24
-    restart: unless-stopped
+    restart: no
     container_name: pytorch-gpu-24
     env_file:
       - .env

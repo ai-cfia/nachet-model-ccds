@@ -6,6 +6,6 @@ RUN apt update
 RUN apt install -y screen pipx && pipx ensurepath
 RUN pipx install uv
 
-COPY ["../../pyproject.toml", "/nachetenv/"]
+COPY --from=project pyproject.toml .
 
 RUN uv pip install -r pyproject.toml

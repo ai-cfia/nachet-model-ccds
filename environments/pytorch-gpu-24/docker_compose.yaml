@@ -1,7 +1,11 @@
 services:
 
   pytorchgpu:
-    build: ./pytorch-gpu-24
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      additional_contexts:
+        project: ../../
     image: pytorch-gpu-24
     restart: unless-stopped
     container_name: pytorch-gpu-24

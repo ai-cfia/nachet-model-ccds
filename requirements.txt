@@ -5,4 +5,10 @@ pip
 python-dotenv
 tqdm
 typer
+nbconvert
+scikit-learn
+nbqa
+seaborn
+mypy
+pytest
 -e .

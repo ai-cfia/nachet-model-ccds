@@ -1,0 +1,24 @@
+services:
+
+  pytorchgpu:
+    build: ./pytorch-gpu-24
+    image: pytorch-gpu-24
+    restart: unless-stopped
+    container_name: pytorch-gpu-24
+    env_file:
+      - .env
+    volumes: 
+      - ../../:/data
+    # ports:
+    #   - '8888:8888'
+    shm_size: '1gb'
+    ulimits:
+      stack: 67108864
+      memlock: -1
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

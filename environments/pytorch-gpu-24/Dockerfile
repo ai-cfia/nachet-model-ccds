@@ -3,9 +3,9 @@ FROM nvcr.io/nvidia/pytorch:24.12-py3
 WORKDIR /nachetenv
 
 RUN apt update
-RUN apt install -y screen
+RUN apt install -y screen pipx && pipx ensurepath
+RUN pipx install uv
 
-RUN /usr/bin/python3 -m pip install --upgrade pip
-COPY ["../../requirements.txt", "/nachetenv/"]
+COPY ["../../pyproject.toml", "/nachetenv/"]
 
-RUN pip install -r requirements.txt
+RUN uv pip install -r pyproject.toml

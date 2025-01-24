@@ -11,5 +11,9 @@ services:
       - "12381:8883"
       - "12382:8888"
     # network_mode: bridge
-    # networks:
-    #   - nachet-network
+    networks:
+      - pytorch-gpu-24_default
+
+networks:
+  pytorch-gpu-24_default:
+    external: true

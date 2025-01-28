@@ -1,0 +1,4 @@
+2025-01-24 03:35:34.470215: Starting seed detection process
+2025-01-24 04:24:43.413349: Error processing image ../data/raw/20241202-re-training-for-ms/1-seed/Training/14 Ambrosia psilostachya/img_20241209_054904_stacked.tiff : Expecting value: line 1 column 1 (char 0)
+2025-01-24 08:08:38.868075: Error processing image ../data/raw/20241202-re-training-for-ms/combine/Training/14 Ambrosia psilostachya/img_20241209_054904_stacked.tiff : Expecting value: line 1 column 1 (char 0)
+2025-01-24 10:47:22.885837: Seed detection process completed

@@ -1,7 +1,7 @@
 import torch
 import os
 import numpy as np
-from transformers import Swinv2Model, Swinv2ForImageClassification, AutoImageProcessor
+from transformers import Swinv2ForImageClassification, AutoImageProcessor
 from torchvision.transforms import (
     Normalize,
     Lambda,
@@ -17,9 +17,7 @@ import json
 import matplotlib.pyplot as plt
 import argparse
 import re
-
-TEST_DIR = "../data/processed/15spp_zoom_level_validation_models/1-seed/test"  # adjust path as needed
-BATCH_SIZE = 32
+from datetime import datetime
 
 def load_model(checkpoint_path):
     model = Swinv2ForImageClassification.from_pretrained(checkpoint_path)
@@ -71,20 +69,26 @@ def evaluate_model(model, device, test_loader):
             y_test.extend(labels.cpu().numpy())
             progress_bar.update(len(images))
     return np.array(predictions), np.array(y_test)
-
-def save_confusion_matrix(y_test, predictions, idx_to_class, output_path):
+def save_confusion_matrix(y_test, predictions, idx_to_class, output_path, figsize):
     cm_normalized = confusion_matrix(y_test, predictions, normalize="true")
     disp_normalized = ConfusionMatrixDisplay(
         cm_normalized, display_labels=[idx_to_class[i] for i in range(len(idx_to_class))]
     )
-    fig, ax = plt.subplots(figsize=(10, 10))
+    fig, ax = plt.subplots(figsize=(figsize, figsize))
     disp_normalized.plot(ax=ax)
     disp_normalized.ax_.set_title("Normalized Confusion Matrix")
     plt.xticks(rotation=80)
+    plt.tight_layout()  # Ensure the whole plot is saved without cropping
     plt.savefig(output_path)
 
 def save_classification_report(y_test, predictions, idx_to_class, output_path):
     report = classification_report(y_test, predictions, target_names=[idx_to_class[i] for i in range(len(idx_to_class))], output_dict=True)
+    # Calculate accuracy for each class without reusing confusion_matrix
+    correct_predictions = (y_test == predictions)
+    for i, class_name in idx_to_class.items():
+        class_indices = (y_test == i)
+        class_accuracy = correct_predictions[class_indices].sum() / class_indices.sum()
+        report[class_name]['accuracy'] = class_accuracy
     with open(output_path, 'w') as f:
         json.dump(report, f, indent=4)
 
@@ -95,23 +99,30 @@ def is_valid_checkpoint_dir(dirname, chkstart, chkend):
         return chkstart <= checkpoint_num <= chkend
     return False
 
-def process_model(model_path):
+def process_model(model_path, test_data_path, output_path, batch_size, figsize):
     model, device = load_model(model_path)
     transform = load_image_processor(model_path)
-    test_loader, idx_to_class = load_test_data(TEST_DIR, transform, BATCH_SIZE)
+    test_loader, idx_to_class = load_test_data(test_data_path, transform, batch_size)
     predictions, y_test = evaluate_model(model, device, test_loader)
-    save_confusion_matrix(y_test, predictions, idx_to_class, f"{model_path}_confusion_matrix.png")
-    save_classification_report(y_test, predictions, idx_to_class, f"{model_path}_classification_report.json")
+    print("Saving evaluation results to {}...".format(output_path))
+    save_confusion_matrix(y_test, predictions, idx_to_class, f"{output_path}/{output_path.split('/')[-1]}_confusion_matrix.png", figsize)
+    save_classification_report(y_test, predictions, idx_to_class, f"{output_path}/{output_path.split('/')[-1]}_classification_report.json")
     with torch.no_grad():
         torch.cuda.empty_cache()
 
 def main():
     parser = argparse.ArgumentParser(description="Evaluate model checkpoints.")
-    parser.add_argument("model_path", type=str, help="Path to the model checkpoint or parent directory.")
+    parser.add_argument("--model_path", type=str, help="Path to the model checkpoint or parent directory.")
+    parser.add_argument("--test_data_path", type=str, help="Path to the test data directory.")
+    parser.add_argument("--batch_size", type=int, default=4, help="Batch size for inference.")
+    parser.add_argument("--output_path", type=str, default="output", help="Path to save evaluation results.")
     parser.add_argument("--parent", type=str, choices=["true", "false"], default="false", help="If set to true, process as parent directory containing multiple checkpoint directories.")
     parser.add_argument("--chkstart", type=int, default=0, help="Start range for checkpoint directories (inclusive).")
     parser.add_argument("--chkend", type=int, default=float('inf'), help="End range for checkpoint directories (inclusive).")
+    parser.add_argument("--figsize", type=int, default=10, help="Size of the confusion matrix figure.")
     args = parser.parse_args()
+
+    print("{}: Starting evaluation...".format(datetime.now()))
 
     if args.chkstart < 0 or args.chkend < 0:
         raise ValueError("chkstart and chkend must be positive integers.")
@@ -120,9 +131,11 @@ def main():
         for subdir in os.listdir(args.model_path):
             subdir_path = os.path.join(args.model_path, subdir)
             if os.path.isdir(subdir_path) and is_valid_checkpoint_dir(subdir, args.chkstart, args.chkend):
-                process_model(subdir_path)
+                process_model(subdir_path, args.test_data_path, os.path.join(args.output_path, subdir), args.batch_size, args.figsize)
     else:
-        process_model(args.model_path)
+        process_model(args.model_path, args.test_data_path, args.output_path, args.batch_size, args.figsize)
+
+    print("{}: Evaluation complete.".format(datetime.now()))
 
 if __name__ == "__main__":
     main()

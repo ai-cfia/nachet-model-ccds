@@ -12,4 +12,12 @@ seaborn
 mypy
 pytest
 ipywidgets
+huggingface_hub
+transformers
+accelerate
+evaluate
+datasets
+peft
+nvidia-ml-py3
+ipdb
 -e .

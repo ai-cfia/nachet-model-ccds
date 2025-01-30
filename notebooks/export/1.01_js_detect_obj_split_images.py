@@ -146,7 +146,7 @@ def get_seed_detections(image_path):
         return result_object[0]["boxes"]
 
 
-# In[ ]:
+# In[7]:
 
 
 def process_folder(folder_path, output_folder, progress_bar):

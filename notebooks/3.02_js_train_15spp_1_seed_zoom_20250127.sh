@@ -1,24 +1,25 @@
 #!/bin/bash
 
-
-python HFTrainer.py \
-    --train_dir  ../data/processed/15spp_zoom_level_validation_models/Training \
-    --output_dir models/15spp_zoom_level_validation_models/1seed_model \
+cd /project
+python nachetmodel/HFTrainer.py \
+    --train_dir data/processed/15spp_zoom_level_validation_models/1-seed/ \
+    --output_dir models/15spp_zoom_level_validation_models/1_seed_model_20250127 \
     --do_train True \
-    --validation_dir ../data/processed/15spp_zoom_level_validation_models/Validation \
     --ignore_mismatched_sizes True \
-    --num_train_epochs 100.0 \
-    --dataloader_num_workers 2 \
+    --num_train_epochs 400.0 \
+    --dataloader_num_workers 8 \
     --do_eval True \
     --do_predict True \
-    --gradient_accumulation_steps 4 \
-    --per_device_train_batch_size 8 \
-    --model_name_or_path microsoft/swinv2_large_patch4_window12to24_192to384_22kto1k_ft \
+    --gradient_accumulation_steps 1 \
+    --per_device_train_batch_size 32 \
+    --model_name_or_path "microsoft/swinv2-large-patch4-window12-192-22k" \
     --warmup_ratio 0.1 \
     --overwrite_output_dir True \
     --learning_rate 0.00002 \
-    --overwrite_output_dir \
-> ./models/15Species-swinv2-large-patch4-2Seed/Train_Logs.txt
+    --overwrite_output_dir True \
+>> models/15spp_zoom_level_validation_models/1_seed_model_20250128/train_log.txt
+
+# --model_name_or_path "microsoft/swinv2-large-patch4-window12to24-192to384-22kto1k-ft" \
 
 # start=500
 # end=4000

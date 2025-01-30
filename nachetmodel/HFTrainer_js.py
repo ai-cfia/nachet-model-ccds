@@ -22,10 +22,14 @@ from torchvision.transforms import (
     Normalize,
     RandomHorizontalFlip,
     RandomResizedCrop,
+    RandomRotation,
+    RandomVerticalFlip,
+    RandomAffine,
+    GaussianBlur,
+    ColorJitter,
     Resize,
     ToTensor,
 )
-from torchvision.transforms import *
 
 import transformers
 from transformers import (
@@ -60,19 +64,6 @@ require_version(
 
 MODEL_CONFIG_CLASSES = list(MODEL_FOR_IMAGE_CLASSIFICATION_MAPPING.keys())
 MODEL_TYPES = tuple(conf.model_type for conf in MODEL_CONFIG_CLASSES)
-
-RUN_LOG = "logs/run.log"
-
-def run_log(message, init=False):
-    os.makedirs(os.path.dirname(RUN_LOG), exist_ok=True)
-    with open(RUN_LOG, ("w" if init else "a")) as f:
-        f.write(f"{datetime.now()}: {message}\n")
-
-def pil_loader(path: str):
-    with open(path, "rb") as f:
-        im = Image.open(f)
-        return im.convert("RGB")
-
 
 @dataclass
 class DataTrainingArguments:
@@ -205,85 +196,32 @@ class ModelArguments:
 
 
 def collate_fn(examples):
-    # ipdb.set_trace()
-    # print to log
-    # run_log(f"Example 0: {examples[0]}")
     pixel_values = torch.stack([example["pixel_values"] for example in examples])
     labels = torch.tensor([example["label"] for example in examples])
     return {"pixel_values": pixel_values, "labels": labels}
 
-
-# def collate_fn(examples):
-#     print('COLLLLLLATEEEEE\n\n\n\n\n\n\n\n\n\n')
-#     images = []
-#     labels = []
-#     for example in examples:
-#         images.append((example["pixel_values"]))
-#         labels.append(example["label"])
-
-#     pixel_values = torch.stack(images)
-#     labels = torch.tensor(labels)
-#     return {"pixel_values": pixel_values, "label": labels}
-
-
-def main():
-    # See all possible arguments in src/transformers/training_args.py
-    # or by passing the --help flag to this script.
-    # We now keep distinct sets of args, for a cleaner separation of concerns.
-    run_log("Starting run", init=True)
-    parser = HfArgumentParser(
-        (ModelArguments, DataTrainingArguments, TrainingArguments)
-    )
+def parse_args():
+    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
-        # If we pass only one argument to the script and it's the path to a json file,
-        # let's parse it to get our arguments.
-        model_args, data_args, training_args = parser.parse_json_file(
-            json_file=os.path.abspath(sys.argv[1])
-        )
+        return parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
     else:
-        model_args, data_args, training_args = parser.parse_args_into_dataclasses()
+        return parser.parse_args_into_dataclasses()
 
-    if model_args.use_auth_token is not None:
-        warnings.warn(
-            "The `use_auth_token` argument is deprecated and will be removed in v4.34. Please use `token` instead.",
-            FutureWarning,
-        )
-        if model_args.token is not None:
-            raise ValueError(
-                "`token` and `use_auth_token` are both specified. Please set only the argument `token`."
-            )
-        model_args.token = model_args.use_auth_token
-
-    # Sending telemetry. Tracking the example usage helps us better allocate resources to maintain them. The
-    # information sent is the one passed as arguments along with your Python/PyTorch versions.
-    send_example_telemetry("run_image_classification", model_args, data_args)
-
-    # Setup logging
+def setup_logging(training_args):
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         datefmt="%m/%d/%Y %H:%M:%S",
-        handlers=[logging.StreamHandler(sys.stdout)],
+        handlers=[logging.FileHandler("console.log"), logging.StreamHandler(sys.stdout)],
     )
-
     if training_args.should_log:
-        # The default of training_args.log_level is passive, so we set log level at info here to have that default.
         transformers.utils.logging.set_verbosity_info()
-
     log_level = training_args.get_process_log_level()
     logger.setLevel(log_level)
     transformers.utils.logging.set_verbosity(log_level)
     transformers.utils.logging.enable_default_handler()
     transformers.utils.logging.enable_explicit_format()
 
-    # Log on each process the small summary:
-    logger.warning(
-        f"Process rank: {training_args.local_rank}, device: {training_args.device}, n_gpu: {training_args.n_gpu}, "
-        + f"distributed training: {training_args.parallel_mode.value == 'distributed'}, 16-bits training: {training_args.fp16}"
-    )
-    logger.info(f"Training/evaluation parameters {training_args}")
-
-    # Detecting last checkpoint.
-    last_checkpoint = None
+def detect_last_checkpoint(training_args):
     if (
         os.path.isdir(training_args.output_dir)
         and training_args.do_train
@@ -302,13 +240,12 @@ def main():
                 f"Checkpoint detected, resuming training at {last_checkpoint}. To avoid this behavior, change "
                 "the `--output_dir` or add `--overwrite_output_dir` to train from scratch."
             )
+        return last_checkpoint
+    return None
 
-    # Set seed before initializing model.
-    set_seed(training_args.seed)
-
-    # Initialize our dataset and prepare it for the 'image-classification' task.
+def initialize_dataset(data_args, model_args):
     if data_args.dataset_name is not None:
-        dataset = load_dataset(
+        return load_dataset(
             data_args.dataset_name,
             data_args.dataset_config_name,
             cache_dir=model_args.cache_dir,
@@ -321,53 +258,122 @@ def main():
             data_files["train"] = os.path.join(data_args.train_dir, "train", "**")
         if data_args.validation_dir is not None:
             data_files["validation"] = os.path.join(data_args.validation_dir, "**")
-
-        dataset = load_dataset(
+        return load_dataset(
             "imagefolder",
             data_dir=data_args.train_dir,
             cache_dir=model_args.cache_dir,
-            # task="image-classification",
         )
 
-    # print(dataset,'DATASETTTTTTT\n\n\n')
-    def rename_columns(example):
-        example["pixel_values"] = example["image"]
-
-    dataset = dataset.rename_column("image", "pixel_values")
-    # dataset = dataset.map(rename_columns)
-    print(dataset)
-    print("\n\n\n\n\n\n\n\nDATAFILESSSSSSSSS^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
-    # If we don't have a validation split, split off a percentage of train as validation.
-    data_args.train_val_split = (
-        None if "validation" in dataset.keys() else data_args.train_val_split
-    )
-    if isinstance(data_args.train_val_split, float) and data_args.train_val_split > 0.0:
-        split = dataset["train"].train_test_split(data_args.train_val_split)
-        dataset["train"] = split["train"]
-        dataset["validation"] = split["test"]
-
-    # Prepare label mappings.
-    # We'll include these in the model's config to get human readable labels in the Inference API.
+def prepare_label_mappings(dataset):
     labels = dataset["train"].features["label"].names
     label2id, id2label = {}, {}
     for i, label in enumerate(labels):
         label2id[label] = str(i)
         id2label[str(i)] = label
+    return label2id, id2label
 
-    # Load the accuracy metric from the datasets package
+def compute_metrics(p):
     metric = evaluate.load("accuracy")
+    return metric.compute(
+        predictions=np.argmax(p.predictions, axis=1), references=p.label_ids
+    )
 
-    # Define our compute_metrics function. It takes an `EvalPrediction` object (a namedtuple with a
-    # predictions and label_ids field) and has to return a dictionary string to float.
-    def compute_metrics(p):
-        """Computes accuracy on a batch of predictions"""
-        return metric.compute(
-            predictions=np.argmax(p.predictions, axis=1), references=p.label_ids
+def get_transforms(image_processor):
+    if "shortest_edge" in image_processor.size:
+        size = image_processor.size["shortest_edge"]
+    else:
+        size = (image_processor.size["height"], image_processor.size["width"])
+    normalize = (
+        Normalize(mean=image_processor.image_mean, std=image_processor.image_std)
+        if hasattr(image_processor, "image_mean")
+        and hasattr(image_processor, "image_std")
+        else Lambda(lambda x: x)
+    )
+    _train_transforms = Compose(
+        [
+            Resize(size),
+            RandomHorizontalFlip(),
+            RandomVerticalFlip(),
+            RandomRotation(degrees=(0, 360)),
+            RandomAffine(degrees=(0, 0), scale=(0.5, 1.5)),
+            GaussianBlur(kernel_size=(5, 5)),
+            ColorJitter(brightness=0.6, contrast=0.25, saturation=0.25),
+            ToTensor(),
+            normalize,
+        ]
+    )
+    _val_transforms = Compose(
+        [
+            Resize(size),
+            CenterCrop(size),
+            ToTensor(),
+            normalize,
+        ]
+    )
+    return _train_transforms, _val_transforms
+
+def apply_transforms(dataset, training_args, data_args, train_transforms, val_transforms):
+    if training_args.do_train:
+        if "train" not in dataset:
+            raise ValueError("--do_train requires a train dataset")
+        if data_args.max_train_samples is not None:
+            dataset["train"] = (
+                dataset["train"]
+                .shuffle(seed=training_args.seed)
+                .select(range(data_args.max_train_samples))
+            )
+        dataset["train"].set_transform(train_transforms)
+
+    if training_args.do_eval:
+        if "validation" not in dataset:
+            raise ValueError("--do_eval requires a validation dataset")
+        if data_args.max_eval_samples is not None:
+            dataset["validation"] = (
+                dataset["validation"]
+                .shuffle(seed=training_args.seed)
+                .select(range(data_args.max_eval_samples))
+            )
+        dataset["validation"].set_transform(val_transforms)
+
+def main():
+    model_args, data_args, training_args = parse_args()
+
+    if model_args.use_auth_token is not None:
+        warnings.warn(
+            "The `use_auth_token` argument is deprecated and will be removed in v4.34. Please use `token` instead.",
+            FutureWarning,
         )
+        if model_args.token is not None:
+            raise ValueError(
+                "`token` and `use_auth_token` are both specified. Please set only the argument `token`."
+            )
+        model_args.token = model_args.use_auth_token
+
+    send_example_telemetry("run_image_classification", model_args, data_args)
+    setup_logging(training_args)
+
+    logger.warning(
+        f"Process rank: {training_args.local_rank}, device: {training_args.device}, n_gpu: {training_args.n_gpu}, "
+        + f"distributed training: {training_args.parallel_mode.value == 'distributed'}, 16-bits training: {training_args.fp16}"
+    )
+    logger.info(f"Training/evaluation parameters {training_args}")
+
+    last_checkpoint = detect_last_checkpoint(training_args)
+    set_seed(training_args.seed)
+
+    dataset = initialize_dataset(data_args, model_args)
+    dataset = dataset.rename_column("image", "pixel_values")
+
+    if isinstance(data_args.train_val_split, float) and data_args.train_val_split > 0.0:
+        split = dataset["train"].train_test_split(data_args.train_val_split)
+        dataset["train"] = split["train"]
+        dataset["validation"] = split["test"]
+
+    label2id, id2label = prepare_label_mappings(dataset)
 
     config = AutoConfig.from_pretrained(
         model_args.config_name or model_args.model_name_or_path,
-        num_labels=len(labels),
+        num_labels=len(label2id),
         label2id=label2id,
         id2label=id2label,
         finetuning_task="image-classification",
@@ -394,113 +400,8 @@ def main():
         trust_remote_code=model_args.trust_remote_code,
     )
 
-    # Define torchvision transforms to be applied to each image.
-    if "shortest_edge" in image_processor.size:
-        size = image_processor.size["shortest_edge"]
-    else:
-        size = (image_processor.size["height"], image_processor.size["width"])
-
-    print("SIZE : ", size)
-    normalize = (
-        Normalize(mean=image_processor.image_mean, std=image_processor.image_std)
-        if hasattr(image_processor, "image_mean")
-        and hasattr(image_processor, "image_std")
-        else Lambda(lambda x: x)
-    )
-    # ORIGINAL TRANSFORMS BELOW
-    # _train_transforms = Compose(
-    #     [
-    #         RandomResizedCrop(size),
-    #         RandomHorizontalFlip(),
-    #         RandomVerticalFlip(),
-    #         RandomRotation(degrees=(0, 360)),
-    #         RandomAffine(degrees=(30, 70), translate=(0.1, 0.3), scale=(0.5, 0.75)),
-    #         # ElasticTransform(),
-    #         GaussianBlur(kernel_size=(5, 9), sigma=(0.1, 5.)),
-    #         RandAugment(),
-    #         ColorJitter(brightness=0.25, contrast=0.25, saturation=0.25, hue=0.2),
-    # ToTensor(),
-    # normalize,
-    #     ]
-    # )
-    _train_transforms = Compose(
-        # [
-        #     Resize(size),
-        #     RandomHorizontalFlip(),
-        #     RandomVerticalFlip(),
-        #     RandomRotation(degrees=(0, 360)),
-        #     RandomAffine(degrees=(0, 0),scale=(0.5, 1.5)),
-        #     GaussianBlur(kernel_size=(9, 9), sigma=(.1, 1.)),
-        #     RandAugment(num_ops= 2, magnitude=8),
-        #     ColorJitter(brightness=0.5),
-        #     ToTensor(),
-        #     normalize,
-        # ]
-        [
-            Resize(size),
-            RandomHorizontalFlip(),
-            RandomVerticalFlip(),
-            RandomRotation(degrees=(0, 360)),
-            RandomAffine(degrees=(0, 0), scale=(0.5, 1.5)),
-            GaussianBlur(kernel_size=(5, 5)),
-            ColorJitter(brightness=0.6, contrast=0.25, saturation=0.25),
-            ToTensor(),
-            normalize,
-        ]
-    )
-    _val_transforms = Compose(
-        [
-            Resize(size),
-            CenterCrop(size),
-            ToTensor(),
-            normalize,
-        ]
-    )
-
-    def train_transforms(example_batch):
-        """Apply _train_transforms across a batch."""
-
-        example_batch["pixel_values"] = [
-            _train_transforms(pil_img.convert("RGB"))
-            for pil_img in example_batch["pixel_values"]
-        ]
-        return example_batch
-
-    def val_transforms(example_batch):
-        """Apply _val_transforms across a batch."""
-
-        example_batch["pixel_values"] = [
-            _val_transforms(pil_img.convert("RGB"))
-            for pil_img in example_batch["pixel_values"]
-        ]
-        return example_batch
-
-    if training_args.do_train:
-        if "train" not in dataset:
-            raise ValueError("--do_train requires a train dataset")
-        if data_args.max_train_samples is not None:
-            dataset["train"] = (
-                dataset["train"]
-                .shuffle(seed=training_args.seed)
-                .select(range(data_args.max_train_samples))
-            )
-        # Set the training transforms
-        dataset["train"].set_transform(train_transforms)
-
-    if training_args.do_eval:
-        if "validation" not in dataset:
-            raise ValueError("--do_eval requires a validation dataset")
-        if data_args.max_eval_samples is not None:
-            dataset["validation"] = (
-                dataset["validation"]
-                .shuffle(seed=training_args.seed)
-                .select(range(data_args.max_eval_samples))
-            )
-        # Set the validation transforms
-        dataset["validation"].set_transform(val_transforms)
-    # print(dataset,'\n\n\n',dataset["train"][0],dataset["validation"],'BROSSSKIIIIIIII')
-    # Initalize our trainer
-    # ipdb.set_trace()#######################################################################################################################
+    train_transforms, val_transforms = get_transforms(image_processor)
+    apply_transforms(dataset, training_args, data_args, train_transforms, val_transforms)
 
     trainer = Trainer(
         model=model,
@@ -512,27 +413,19 @@ def main():
         data_collator=collate_fn,
     )
 
-    # Training
     if training_args.do_train:
-        checkpoint = None
-        if training_args.resume_from_checkpoint is not None:
-            checkpoint = training_args.resume_from_checkpoint
-        elif last_checkpoint is not None:
-            checkpoint = last_checkpoint
-        print("CHECKPOINT : ", checkpoint)
+        checkpoint = training_args.resume_from_checkpoint or last_checkpoint
         train_result = trainer.train(resume_from_checkpoint=checkpoint)
         trainer.save_model()
         trainer.log_metrics("train", train_result.metrics)
         trainer.save_metrics("train", train_result.metrics)
         trainer.save_state()
 
-    # Evaluation
     if training_args.do_eval:
         metrics = trainer.evaluate()
         trainer.log_metrics("eval", metrics)
         trainer.save_metrics("eval", metrics)
 
-    # Write model card and (optionally) push to hub
     kwargs = {
         "finetuned_from": model_args.model_name_or_path,
         "tasks": "image-classification",
@@ -543,7 +436,6 @@ def main():
         trainer.push_to_hub(**kwargs)
     else:
         trainer.create_model_card(**kwargs)
-
 
 if __name__ == "__main__":
     main()

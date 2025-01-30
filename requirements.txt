@@ -20,4 +20,5 @@ datasets
 peft
 nvidia-ml-py3
 ipdb
+minio
 -e .

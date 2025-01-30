@@ -21,4 +21,6 @@ peft
 nvidia-ml-py3
 ipdb
 minio
+lime
+shap
 -e .

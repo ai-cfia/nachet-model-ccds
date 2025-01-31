@@ -6,10 +6,8 @@ WORKDIR /nachetenv
 RUN apt update
 RUN apt install -y screen
 
-COPY --from=project pyproject.toml .
+COPY requirements.txt .
 
-RUN uv venv
-RUN source .venv/bin/activate
-RUN uv pip install -r pyproject.toml
+RUN pip install -r requirements.txt
 
 ENTRYPOINT ["tail", "-f", "/dev/null"]

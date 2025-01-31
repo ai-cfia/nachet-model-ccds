@@ -4,8 +4,6 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
-      additional_contexts:
-        project: ../../
     image: pytorch-gpu-24
     restart: no
     container_name: pytorch-gpu-24

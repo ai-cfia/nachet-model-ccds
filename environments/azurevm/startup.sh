@@ -22,6 +22,7 @@ echo "Press enter to continue"
 read
 
 sudo systemctl start docker
-cd ~/cloudfiles/code/Users/Joseffus.Santos/nachet-model-ccds/enviroments/pytorch-gpu-24
-docker compose -f docker-compose.yml up -d
+cd cloudfiles
+cd code/Users/Joseffus.Santos/nachet-model-ccds/enviroments/pytorch-gpu-24
+docker compose -f docker-compose.yaml up -d
 docker exec -it pytorch-gpu-24 /bin/bash

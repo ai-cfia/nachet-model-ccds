@@ -9,4 +9,5 @@ python nachetmodel/ModelEvaluator.py \
     --parent "true" \
     --chkstart 500 \
     --chkend 40000 \
+    --figsize 15 \
 >> models/27spp_model/model_220250130/evaluate.log 2>&1

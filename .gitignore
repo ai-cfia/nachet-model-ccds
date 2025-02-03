@@ -175,3 +175,5 @@ cython_debug/
 runs/
 checkpoint-*/
 models/*
+*.amlignore*
+*.amltmp

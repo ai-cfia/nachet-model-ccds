@@ -256,7 +256,7 @@ def main():
 
     # Sending telemetry. Tracking the example usage helps us better allocate resources to maintain them. The
     # information sent is the one passed as arguments along with your Python/PyTorch versions.
-    send_example_telemetry("run_image_classification", model_args, data_args)
+    # send_example_telemetry("run_image_classification", model_args, data_args)
 
     # Setup logging
     logging.basicConfig(
@@ -505,11 +505,16 @@ def main():
     trainer = Trainer(
         model=model,
         args=training_args,
+        data_collator=collate_fn,
         train_dataset=dataset["train"] if training_args.do_train else None,
         eval_dataset=dataset["validation"] if training_args.do_eval else None,
+        processing_class=image_processor,
+        # model_init=,
+        # compute_loss_func=,
         compute_metrics=compute_metrics,
-        tokenizer=image_processor,
-        data_collator=collate_fn,
+        # callbacks=[],
+        # optimizer_cls_and_kwargs=,
+        # preprocess_logits_for_metrics=,
     )
 
     # Training

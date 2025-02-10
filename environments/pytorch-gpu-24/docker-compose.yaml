@@ -11,6 +11,7 @@ services:
       - .env
     volumes: 
       - ../../:/project
+      # - /tmp:/tmp
     # ports:
     #   - '8888:8888'
     shm_size: '1gb'

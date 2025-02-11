@@ -62,7 +62,8 @@ def plot_loss(df: pd.DataFrame, save: bool = False, save_path: str = "./") -> No
     ax.set_ylim(top=0.05, bottom=-0.0001)
     
     # ax.ylim(top=df['loss'].max())
-    fig.show() if not save else fig.savefig(f"{save_path}loss_plot.png")
+    fig.savefig(f"{save_path}loss_plot.png") if save else fig.show()
+    plt.close(fig)
 
 
 # In[ ]:
@@ -98,7 +99,8 @@ def plot_accuracy(df: pd.DataFrame, state: pd.DataFrame, title: str, save: bool 
     ax.set_ylabel("Accuracy")
     ax.set_title(title)
     ax.set_ylim(top=1.0, bottom=0.0)
-    fig.show() if not save else fig.savefig(f"{save_path}{title}_accuracy_plot.png")
+    fig.savefig(f"{save_path}{title}_accuracy_plot.png") if save else fig.show()
+    plt.close(fig)
 
 
 # In[ ]:
@@ -115,7 +117,8 @@ def plot_metric(df: pd.DataFrame, state: pd.DataFrame, title: str, metric: str, 
     ax.set_xlabel("Epoch")
     ax.set_ylabel(metric)
     ax.set_title(title)
-    fig.show() if not save else fig.savefig(f"{save_path}{title}_{metric}_plot.png")
+    fig.savefig(f"{save_path}{title}_{metric}_plot.png") if save else fig.show()
+    plt.close(fig)
 
 
 # In[ ]:
@@ -187,6 +190,17 @@ def plot_class_metric(
 # In[ ]:
 
 
+def move_checkpoint_plots(chk_root: str, save_path: str) -> None:
+    for subdir, dirs, files in os.walk(chk_root):
+        for file_name in files:
+            if file_name.endswith(".png") and "checkpoint" in subdir:
+                full_path = os.path.join(subdir, file_name)
+                os.rename(full_path, f"{save_path}{file_name}")
+
+
+# In[ ]:
+
+
 def get_class_names(loaded_reports) -> list:
     result = []
     for key in loaded_reports["500"]:
@@ -198,58 +212,35 @@ def get_class_names(loaded_reports) -> list:
 # In[ ]:
 
 
+def process_model(root_path: str, save: bool = False) -> None:
+    save_path = f"{root_path}/plots/"
+    if not os.path.exists(root_path + "/plots"):
+        os.makedirs(root_path + "/plots")
 
+    loaded_reports = load_classification_reports(root_path)
+    state = train_state_to_df(f"{root_path}/trainer_state.json")
+    
+    class_names = get_class_names(loaded_reports)
+    all_spp = all_spp_accuracy(loaded_reports)
+
+    plot_loss(state, save, save_path)
+    plot_accuracy(all_spp, state, "All Species", save, save_path)
+    
+    for class_name in class_names:
+        plot_class_metric(loaded_reports, state, class_name, "accuracy", class_name, save, save_path)
+        plot_class_metric(loaded_reports, state, class_name, "precision", class_name, save, save_path)
+        plot_class_metric(loaded_reports, state, class_name, "recall", class_name, save, save_path)
+        plot_class_metric(loaded_reports, state, class_name, "f1-score", class_name, save, save_path)
+    
+    move_checkpoint_plots(root_path, save_path)
 
 
 # In[ ]:
 
 
 def main():
-    root_path = "../models/15spp_zoom_level_validation_models/1_seed_model_20250127"
-    classification_reports = load_classification_reports(root_path)
-    state_path = root_path + "/trainer_state.json"
-    train_state_df = train_state_to_df(state_path)
-
-    #  create subfolder called plots
-    if not os.path.exists(root_path + "/plots"):
-        os.makedirs(root_path + "/plots")
-
-
-    plot_loss(train_state_df, save=True, save_path=root_path + "/plots/")
-    plot_accuracy(
-        all_spp_accuracy(classification_reports), train_state_df, "All Species", save=True, save_path=root_path + "/plots/"
-    )
-
-    classes = get_class_names(classification_reports)
-    classes.sort(key=(lambda x: int(x.split(" ")[0])))
-    # print(json.dumps(classes, indent=4))
-    for class_name in classes:
-        plot_class_metric(
-            classification_reports,
-            train_state_df,
-            class_name,
-            "accuracy",
-            class_name,
-            save=True,
-            save_path=root_path + "/plots/"
-        )
-        plot_class_metric(
-            classification_reports,
-            train_state_df,
-            class_name,
-            "precision",
-            class_name,
-            save=True,
-            save_path=root_path + "/plots/"
-        )
-        break
-
+    process_model("../models/15spp_zoom_level_validation_models/1_seed_model_20250127", save=True)
+    print("Done")
 
 main()
-
-
-# In[ ]:
-
-
-
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 import transformers
@@ -13,7 +13,7 @@ print(f"Accelerate version: {accelerate.__version__}")
 print(f"PEFT version: {peft.__version__}")
 
 
-# In[12]:
+# In[ ]:
 
 
 # from huggingface_hub import notebook_login
@@ -27,7 +27,7 @@ print(f"PEFT version: {peft.__version__}")
 MODEL_STRING = "microsoft/swinv2-large-patch4-window12to24-192to384-22kto1k-ft"
 
 
-# In[3]:
+# In[ ]:
 
 
 get_ipython().system('accelerate estimate-memory "microsoft/swinv2-large-patch4-window12to24-192to384-22kto1k-ft" --library_name transformers')
@@ -52,7 +52,7 @@ def print_summary(result):
     print_gpu_utilization()
 
 
-# In[7]:
+# In[ ]:
 
 
 print_gpu_utilization()
@@ -67,7 +67,7 @@ with torch.no_grad():
     torch.cuda.empty_cache()
 
 
-# In[6]:
+# In[ ]:
 
 
 # from transformers import AutoImageProcessor, Swinv2Model

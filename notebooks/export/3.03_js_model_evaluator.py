@@ -26,7 +26,7 @@ CHECKPOINT_PATH = "../models/15spp_zoom_level_validation_models/1_seed_model_202
 # IMAGE_SIZE = 192
 
 
-# In[2]:
+# In[ ]:
 
 
 # # Load the checkpoint
@@ -46,7 +46,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model.to(device)
 
 
-# In[3]:
+# In[ ]:
 
 
 # Load the image processor
@@ -77,7 +77,7 @@ transform = Compose(
 
 
 
-# In[4]:
+# In[ ]:
 
 
 # Load test dataset from local folder
@@ -97,7 +97,7 @@ BATCH_SIZE = 32
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
 
-# In[5]:
+# In[ ]:
 
 
 total_samples = len(test_dataset.imgs)
@@ -136,7 +136,7 @@ with torch.no_grad():
     torch.cuda.empty_cache()
 
 
-# In[26]:
+# In[ ]:
 
 
 import matplotlib.pyplot as plt
@@ -167,7 +167,7 @@ plt.xticks(rotation=80)
 plt.show()
 
 
-# In[7]:
+# In[ ]:
 
 
 # Generate classification report

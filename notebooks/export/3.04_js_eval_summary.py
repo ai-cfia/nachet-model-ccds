@@ -182,10 +182,9 @@ def plot_class_metric(
 
 
 def get_class_names(loaded_reports) -> list:
-    print(loaded_reports)
     result = []
-    for key in loaded_reports['500']:
-        if key != "accuracy" or key != "macro avg" or key != "weighted avg":
+    for key in loaded_reports["500"]:
+        if key not in ["accuracy", "macro avg", "weighted avg"]:
             result.append(key)
     return result
 
@@ -202,19 +201,10 @@ def main():
     plot_accuracy(
         all_spp_accuracy(classification_reports), train_state_df, "All Species"
     )
-    # plot_class_accuracy(
-    #     classification_reports, train_state_df, "12 Ambrosia artemisiifolia"
-    # )
-    # plot_class_accuracy(classification_reports, train_state_df, "5 Bromus secalinus")
-    # plot_class_metric(
-    #     classification_reports,
-    #     train_state_df,
-    #     "5 Bromus secalinus",
-    #     "precision",
-    #     "5 Bromus secalinus",
-    # )
+
     classes = get_class_names(classification_reports)
-    classes = classes.sort(key=lambda x: int(x.split(" ")[0]))
+    classes.sort(key=(lambda x: int(x.split(" ")[0])))
+    # print(json.dumps(classes, indent=4))
     for class_name in classes:
         plot_class_metric(
             classification_reports,
@@ -230,20 +220,6 @@ def main():
             "precision",
             class_name,
         )
-
-
-    # print(f"Loaded {len(classification_reports)} classification reports")
-    # for file_name, report in classification_reports.items():
-    #     print(f"File: {file_name}")
-    #     print(json.dumps(report, indent=4))
-    #     print("\n\n")
-    #     break
-    # print(json.dumps(classification_reports['500'], indent=4))
-
-    # all_spp_accuracy_df = all_spp_accuracy(classification_reports)
-    # print(all_spp_accuracy_df)
-
-    # print(train_state_df)
 
 
 main()

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 import os
@@ -10,7 +10,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-# In[2]:
+# In[ ]:
 
 
 def load_classification_reports(root_path) -> dict:
@@ -30,6 +30,7 @@ def load_classification_reports(root_path) -> dict:
 
 def train_state_to_df(train_state) -> pd.DataFrame:
     result = []
+
     with open(train_state, "r") as f:
         state_json = json.load(f)
         for log in state_json["log_history"]:
@@ -58,7 +59,7 @@ def plot_loss(df: pd.DataFrame):
     plt.ylabel("Loss")
     plt.title("Training Loss")
     # // set ymax to max loss excluding the highest 5% of values
-    plt.ylim(top=df["loss"].quantile(0.97), bottom=-0.0001)
+    plt.ylim(top=0.05, bottom=-0.0001)
     # plt.ylim(top=df['loss'].max())
     plt.show()
 
@@ -180,6 +181,18 @@ def plot_class_metric(
 # In[ ]:
 
 
+def get_class_names(loaded_reports) -> list:
+    print(loaded_reports)
+    result = []
+    for key in loaded_reports['500']:
+        if key != "accuracy" or key != "macro avg" or key != "weighted avg":
+            result.append(key)
+    return result
+
+
+# In[ ]:
+
+
 def main():
     root_path = "../models/15spp_zoom_level_validation_models/1_seed_model_20250127"
     classification_reports = load_classification_reports(root_path)
@@ -189,10 +202,35 @@ def main():
     plot_accuracy(
         all_spp_accuracy(classification_reports), train_state_df, "All Species"
     )
-    plot_class_accuracy(
-        classification_reports, train_state_df, "12 Ambrosia artemisiifolia"
-    )
-    plot_class_accuracy(classification_reports, train_state_df, "5 Bromus secalinus")
+    # plot_class_accuracy(
+    #     classification_reports, train_state_df, "12 Ambrosia artemisiifolia"
+    # )
+    # plot_class_accuracy(classification_reports, train_state_df, "5 Bromus secalinus")
+    # plot_class_metric(
+    #     classification_reports,
+    #     train_state_df,
+    #     "5 Bromus secalinus",
+    #     "precision",
+    #     "5 Bromus secalinus",
+    # )
+    classes = get_class_names(classification_reports)
+    classes = classes.sort(key=lambda x: int(x.split(" ")[0]))
+    for class_name in classes:
+        plot_class_metric(
+            classification_reports,
+            train_state_df,
+            class_name,
+            "accuracy",
+            class_name,
+        )
+        plot_class_metric(
+            classification_reports,
+            train_state_df,
+            class_name,
+            "precision",
+            class_name,
+        )
+
 
     # print(f"Loaded {len(classification_reports)} classification reports")
     # for file_name, report in classification_reports.items():

@@ -53,15 +53,16 @@ def train_state_to_df(train_state) -> pd.DataFrame:
 # In[ ]:
 
 
-def plot_loss(df: pd.DataFrame):
-    plt.plot(df["epoch"], df["loss"])
-    plt.xlabel("Epoch")
-    plt.ylabel("Loss")
-    plt.title("Training Loss")
-    # // set ymax to max loss excluding the highest 5% of values
-    plt.ylim(top=0.05, bottom=-0.0001)
-    # plt.ylim(top=df['loss'].max())
-    plt.show()
+def plot_loss(df: pd.DataFrame, save: bool = False, save_path: str = "./") -> None:
+    fig, ax = plt.subplots()
+    ax.plot(df["epoch"], df["loss"])
+    ax.set_xlabel("Epoch")
+    ax.set_ylabel("Loss")
+    ax.set_title("Training Loss")
+    ax.set_ylim(top=0.05, bottom=-0.0001)
+    
+    # ax.ylim(top=df['loss'].max())
+    fig.show() if not save else fig.savefig(f"{save_path}loss_plot.png")
 
 
 # In[ ]:
@@ -84,34 +85,37 @@ def all_spp_accuracy(loaded_reports) -> pd.DataFrame:
 # In[ ]:
 
 
-def plot_accuracy(df: pd.DataFrame, state: pd.DataFrame, title: str):
+def plot_accuracy(df: pd.DataFrame, state: pd.DataFrame, title: str, save: bool = False, save_path: str = "./") -> None:
+
     # use epoch as x-axis
     df["epoch"] = df["checkpoint"].apply(lambda x: checkpoint_to_epoch(state, int(x)))
     # sort by epoch
     df = df.sort_values(by="epoch")
 
-    plt.plot(df["epoch"], df["accuracy"])
-    plt.xlabel("Epoch")
-    plt.ylabel("Accuracy")
-    plt.ylim(top=1.0, bottom=0.0)
-    plt.title(title)
-    plt.show()
+    fig, ax = plt.subplots()
+    ax.plot(df["epoch"], df["accuracy"])
+    ax.set_xlabel("Epoch")
+    ax.set_ylabel("Accuracy")
+    ax.set_title(title)
+    ax.set_ylim(top=1.0, bottom=0.0)
+    fig.show() if not save else fig.savefig(f"{save_path}{title}_accuracy_plot.png")
 
 
 # In[ ]:
 
 
-def plot_metric(df: pd.DataFrame, state: pd.DataFrame, title: str, metric: str):
+def plot_metric(df: pd.DataFrame, state: pd.DataFrame, title: str, metric: str, save: bool = False, save_path: str = "./") -> None:
     # use epoch as x-axis
     df["epoch"] = df["checkpoint"].apply(lambda x: checkpoint_to_epoch(state, int(x)))
     # sort by epoch
     df = df.sort_values(by="epoch")
 
-    plt.plot(df["epoch"], df[metric])
-    plt.xlabel("Epoch")
-    plt.ylabel(metric)
-    plt.title(title)
-    plt.show()
+    fig, ax = plt.subplots()
+    ax.plot(df["epoch"], df[metric])
+    ax.set_xlabel("Epoch")
+    ax.set_ylabel(metric)
+    ax.set_title(title)
+    fig.show() if not save else fig.savefig(f"{save_path}{title}_{metric}_plot.png")
 
 
 # In[ ]:
@@ -135,21 +139,21 @@ def macro_avg(loaded_reports) -> pd.DataFrame:
 # In[ ]:
 
 
-def plot_class_accuracy(loaded_reports, state, class_name) -> pd.DataFrame:
-    result = []
-    for key, report in loaded_reports.items():
-        result.append(
-            {
-                "checkpoint": key,
-                "precision": report[class_name]["precision"],
-                "recall": report[class_name]["recall"],
-                "f1-score": report[class_name]["f1-score"],
-                "support": report[class_name]["support"],
-                "accuracy": report[class_name]["accuracy"],
-            }
-        )
-    df = pd.DataFrame(result)
-    plot_accuracy(df, state, class_name)
+# def plot_class_accuracy(loaded_reports, state, class_name):
+#     result = []
+#     for key, report in loaded_reports.items():
+#         result.append(
+#             {
+#                 "checkpoint": key,
+#                 "precision": report[class_name]["precision"],
+#                 "recall": report[class_name]["recall"],
+#                 "f1-score": report[class_name]["f1-score"],
+#                 "support": report[class_name]["support"],
+#                 "accuracy": report[class_name]["accuracy"],
+#             }
+#         )
+#     df = pd.DataFrame(result)
+#     plot_accuracy(df, state, class_name)
 
 
 # In[ ]:
@@ -161,6 +165,8 @@ def plot_class_metric(
     title: str,
     metric: str,
     class_name: str,
+    save: bool = False,
+    save_path: str = "./",
 ):
     result = []
     for key, report in loaded_reports.items():
@@ -175,7 +181,7 @@ def plot_class_metric(
             }
         )
     df = pd.DataFrame(result)
-    plot_metric(df, state, title, metric)
+    plot_metric(df, state, title, metric, save, save_path)
 
 
 # In[ ]:
@@ -192,14 +198,26 @@ def get_class_names(loaded_reports) -> list:
 # In[ ]:
 
 
+
+
+
+# In[ ]:
+
+
 def main():
     root_path = "../models/15spp_zoom_level_validation_models/1_seed_model_20250127"
     classification_reports = load_classification_reports(root_path)
     state_path = root_path + "/trainer_state.json"
     train_state_df = train_state_to_df(state_path)
-    plot_loss(train_state_df)
+
+    #  create subfolder called plots
+    if not os.path.exists(root_path + "/plots"):
+        os.makedirs(root_path + "/plots")
+
+
+    plot_loss(train_state_df, save=True, save_path=root_path + "/plots/")
     plot_accuracy(
-        all_spp_accuracy(classification_reports), train_state_df, "All Species"
+        all_spp_accuracy(classification_reports), train_state_df, "All Species", save=True, save_path=root_path + "/plots/"
     )
 
     classes = get_class_names(classification_reports)
@@ -212,6 +230,8 @@ def main():
             class_name,
             "accuracy",
             class_name,
+            save=True,
+            save_path=root_path + "/plots/"
         )
         plot_class_metric(
             classification_reports,
@@ -219,8 +239,17 @@ def main():
             class_name,
             "precision",
             class_name,
+            save=True,
+            save_path=root_path + "/plots/"
         )
+        break
 
 
 main()
+
+
+# In[ ]:
+
+
+
 

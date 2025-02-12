@@ -70,6 +70,8 @@ def plot_loss(df: pd.DataFrame, save: bool = False, save_path: str = "./") -> No
 
 
 def checkpoint_to_epoch(state: pd.DataFrame, checkpoint: int) -> int:
+    if checkpoint % 500 != 0:
+        return -1
     return state[state["step"] == checkpoint]["epoch"].values[0]
 
 
@@ -239,8 +241,26 @@ def process_model(root_path: str, save: bool = False) -> None:
 
 
 def main():
-    process_model("../models/15spp_zoom_level_validation_models/1_seed_model_20250127", save=True)
-    print("Done")
+    # process_model("../models/15spp_zoom_level_validation_models/1_seed_model_20250127", save=True)
+    # print("1/7 Done")
+
+    # process_model("../models/15spp_zoom_level_validation_models/1_seed_model_20250128", save=True)
+    # print("2/7 Done")
+    
+    # process_model("../models/15spp_zoom_level_validation_models/1_seed_model_20250129", save=True)
+    # print("3/7 Done")
+    
+    process_model("../models/15spp_zoom_level_validation_models/2_seed_model_120250130", save=True)
+    print("4/7 Done")
+    
+    process_model("../models/15spp_zoom_level_validation_models/6_seed_model_120250130", save=True)
+    print("5/7 Done")
+    
+    process_model("../models/27spp_model/model_120250130", save=True)
+    print("6/7 Done")
+    
+    process_model("../models/27spp_model/model_220250130", save=True)
+    print("7/7 Done")
 
 main()
 

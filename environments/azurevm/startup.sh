@@ -5,7 +5,7 @@
 
 sudo systemctl stop docker
 sudo mkdir -p /tmp/ramdisk
-sudo sudo mount -t tmpfs -o size=128G myramdisk /tmp/ramdisk
+sudo sudo mount -t tmpfs -o size=64G myramdisk /tmp/ramdisk
 sudo rsync -avh /var/lib/docker /tmp/ramdisk/
 
 echo " adding the following lines to /etc/docker/daemon.json"

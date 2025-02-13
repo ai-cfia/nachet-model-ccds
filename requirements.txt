@@ -23,4 +23,8 @@ ipdb
 minio
 lime
 shap
+onnx
+onnxruntime
+onnxscript
+torch-model-archiver
 -e .

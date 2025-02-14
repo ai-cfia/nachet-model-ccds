@@ -1,0 +1,31 @@
+services:
+  classifier-27spp-model-1:
+    build: 
+      context: .
+      dockerfile: 27spp_model_1.cpu.dockerfile
+    image: ghcr.io/ai-cfia/nachet-model-ccds/serve-cpu-py311-prod:20250214
+    restart: no
+    container_name: classifier-27spp-model-1
+    env_file:
+      - .env
+    volumes: 
+      - ../../../:/project
+      # - /tmp:/tmp
+    ports:
+      - '127.0.0.1:68080:8080'
+      - '127.0.0.1:68081:8081'
+      - '127.0.0.1:68082:8082'
+      - '127.0.0.1:67070:7070'
+      - '127.0.0.1:67071:7071'
+
+    shm_size: '1gb'
+    ulimits:
+      stack: 67108864
+      memlock: -1
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

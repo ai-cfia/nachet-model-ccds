@@ -121,7 +121,7 @@ def get_parser():
     parser.add_argument(
         "--handler",
         type=str,
-        default="handler.py",
+        default="image_classifier",
         help="Handler file required for model archiver.",
     )
     parser.add_argument(
@@ -172,7 +172,19 @@ def get_parser():
 
 def main():
     parser = get_parser()
-    args = parser.parse_args()
+    # args = parser.parse_args()
+
+    argarr = [
+        "--checkpoint_path models/27spp_model/model_120250130/checkpoint-10000",
+        "--serialized_output models/27spp_model/model_120250130/checkpoint-10000/27spp_model_1_serialized.pt",
+        "--model_name 27spp_model_1",
+        "--version 1.0",
+        "--handler image_classifier",
+        "--export_path models/27spp_model/model_120250130/checkpoint-10000/",
+    ]
+    argstr = " ".join(argarr)
+
+    args = parser.parse_args(argstr)
 
     if args.ensemble:
         ensemble_states = {}

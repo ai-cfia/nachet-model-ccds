@@ -59,7 +59,15 @@ def export_to_onnx(model, output_file, checkpoint_path):
 
 
 def run_model_archiver(
-    model_name, version, serialized_file, handler, export_path, extra_files=""
+    model_name,
+    version,
+    model_file,
+    serialized_file,
+    export_path,
+    handler,
+    requirements="",
+    config="",
+    extra_files="",
 ):
     # Build and run the torch-model-archiver command
     cmd = [
@@ -68,22 +76,29 @@ def run_model_archiver(
         model_name,
         "--version",
         version,
+        "--model-file",
+        model_file,
         "--serialized-file",
         serialized_file,
         "--handler",
         handler,
         "--export-path",
         export_path,
+        "-f",
     ]
     if extra_files:
         cmd.extend(["--extra-files", extra_files])
+    if requirements:
+        cmd.extend(["--requirements-file", requirements])
+    if config:
+        cmd.extend(["--config", config])
     subprocess.run(cmd, check=True)
 
 
 # In[ ]:
 
 
-def main():
+def get_parser():
     parser = argparse.ArgumentParser(description="Export and archive a PyTorch model.")
     parser.add_argument(
         "--checkpoint_path",
@@ -122,6 +137,18 @@ def main():
         help="Extra files to include (comma separated if multiple).",
     )
     parser.add_argument(
+        "--requirements",
+        type=str,
+        default="",
+        help="Requirements file for the model archive.",
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        default="",
+        help="Config file for the model archive.",
+    )
+    parser.add_argument(
         "--ensemble",
         action="store_true",
         help="Enable ensemble mode to save multiple models in one serialized file.",
@@ -137,6 +164,14 @@ def main():
         default="model.onnx",
         help="Output file for ONNX model export.",
     )
+    return parser
+
+
+# In[ ]:
+
+
+def main():
+    parser = get_parser()
     args = parser.parse_args()
 
     if args.ensemble:
@@ -166,8 +201,10 @@ def main():
         args.model_name,
         args.version,
         args.serialized_output,
-        args.handler,
         args.export_path,
+        args.handler,
+        args.requirements,
+        args.config,
         args.extra_files,
     )
 

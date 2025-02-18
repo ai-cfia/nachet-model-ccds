@@ -1,22 +1,22 @@
 services:
-  classifier-27spp-model-1:
+  cpu-classifier-27spp-model-1:
     build: 
       context: .
       dockerfile: 27spp_model_1.cpu.dockerfile
-    image: ghcr.io/ai-cfia/nachet-model-ccds/serve-cpu-py311-prod:20250214
+    image: local/ai-cfia/nachet-model-ccds/cpu-classifier-27spp-model-1:20250214
     restart: no
-    container_name: classifier-27spp-model-1
-    env_file:
-      - .env
+    container_name: cpu-classifier-27spp-model-1
     volumes: 
       - ../../../:/project
+      - ../models:/home/model-server/model-store
       # - /tmp:/tmp
+    entrypoint: ["torchserve", "--start", "--model-store", "/home/model-server/model-store", "--models", "27spp_model_1.mar", "--enable-model-api"]
     ports:
-      - '127.0.0.1:68080:8080'
-      - '127.0.0.1:68081:8081'
-      - '127.0.0.1:68082:8082'
-      - '127.0.0.1:67070:7070'
-      - '127.0.0.1:67071:7071'
+      - '127.0.0.1:28080:8080'
+      - '127.0.0.1:28081:8081'
+      - '127.0.0.1:28082:8082'
+      - '127.0.0.1:27070:7070'
+      - '127.0.0.1:27071:7071'
 
     # shm_size: '1gb'
     # ulimits:

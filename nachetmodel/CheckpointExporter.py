@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# coding: utf-8
+
 import os
 import torch
 import subprocess
@@ -5,7 +8,7 @@ import argparse
 from transformers import (
     Swinv2ForImageClassification,
     AutoImageProcessor,
-)  # updated import
+)
 
 
 def load_model(checkpoint_path):
@@ -50,7 +53,15 @@ def export_to_onnx(model, output_file, checkpoint_path):
 
 
 def run_model_archiver(
-    model_name, version, serialized_file, handler, export_path, extra_files=""
+    model_name,
+    version,
+    model_file,
+    serialized_file,
+    export_path,
+    handler,
+    requirements="",
+    config="",
+    extra_files="",
 ):
     # Build and run the torch-model-archiver command
     cmd = [
@@ -59,19 +70,26 @@ def run_model_archiver(
         model_name,
         "--version",
         version,
+        "--model-file",
+        model_file,
         "--serialized-file",
         serialized_file,
         "--handler",
         handler,
         "--export-path",
         export_path,
+        "-f",
     ]
     if extra_files:
         cmd.extend(["--extra-files", extra_files])
+    if requirements:
+        cmd.extend(["--requirements-file", requirements])
+    if config:
+        cmd.extend(["--config", config])
     subprocess.run(cmd, check=True)
 
 
-def main():
+def get_parser():
     parser = argparse.ArgumentParser(description="Export and archive a PyTorch model.")
     parser.add_argument(
         "--checkpoint_path",
@@ -86,6 +104,12 @@ def main():
         help="Output file for serialized model.",
     )
     parser.add_argument(
+        "--model_file",
+        type=str,
+        default="model.py",
+        help="Python file containing the model class.",
+    )
+    parser.add_argument(
         "--model_name", type=str, required=True, help="Name for the model archive."
     )
     parser.add_argument(
@@ -94,7 +118,7 @@ def main():
     parser.add_argument(
         "--handler",
         type=str,
-        default="handler.py",
+        default="image_classifier",
         help="Handler file required for model archiver.",
     )
     parser.add_argument(
@@ -108,6 +132,18 @@ def main():
         type=str,
         default="",
         help="Extra files to include (comma separated if multiple).",
+    )
+    parser.add_argument(
+        "--requirements",
+        type=str,
+        default="",
+        help="Requirements file for the model archive.",
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        default="",
+        help="Config file for the model archive.",
     )
     parser.add_argument(
         "--ensemble",
@@ -125,7 +161,29 @@ def main():
         default="model.onnx",
         help="Output file for ONNX model export.",
     )
-    args = parser.parse_args()
+    return parser
+
+
+def main():
+    print("Exporting model...")
+    parser = get_parser()
+    # args = parser.parse_args()
+
+    print("Test args")
+    argarr = [
+        "--checkpoint_path ../environments/torchserve/gpu/artifacts",
+        "--serialized_output ../environments/torchserve/gpu/artifacts/27spp_model_1_serialized.pt",
+        "--model_name 27spp_model_1",
+        "--model_file ../environments/torchserve/gpu/artifacts/model.py",
+        "--version 1.0",
+        "--handler image_classifier",
+        "--export_path ../environments/torchserve/gpu/artifacts/",
+        "--extra_files ../environments/torchserve/gpu/artifacts/config.properties",
+    ]
+    argstr = " ".join(argarr)
+
+    print("Parsing args")
+    args = parser.parse_args(argstr.split())
 
     if args.ensemble:
         ensemble_states = {}
@@ -153,9 +211,12 @@ def main():
     run_model_archiver(
         args.model_name,
         args.version,
+        args.model_file,
         args.serialized_output,
-        args.handler,
         args.export_path,
+        args.handler,
+        args.requirements,
+        args.config,
         args.extra_files,
     )
 

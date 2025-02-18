@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[1]:
 
 
 import os
@@ -14,7 +14,7 @@ from transformers import (
 )
 
 
-# In[ ]:
+# In[2]:
 
 
 def load_model(checkpoint_path):
@@ -95,7 +95,7 @@ def run_model_archiver(
     subprocess.run(cmd, check=True)
 
 
-# In[ ]:
+# In[3]:
 
 
 def get_parser():
@@ -111,6 +111,12 @@ def get_parser():
         type=str,
         default="model_serialized.pt",
         help="Output file for serialized model.",
+    )
+    parser.add_argument(
+        "--model_file",
+        type=str,
+        default="model.py",
+        help="Python file containing the model class.",
     )
     parser.add_argument(
         "--model_name", type=str, required=True, help="Name for the model archive."
@@ -167,24 +173,29 @@ def get_parser():
     return parser
 
 
-# In[ ]:
+# In[4]:
 
 
 def main():
+    print("Exporting model...")
     parser = get_parser()
     # args = parser.parse_args()
 
+    print("Test args")
     argarr = [
-        "--checkpoint_path models/27spp_model/model_120250130/checkpoint-10000",
-        "--serialized_output models/27spp_model/model_120250130/checkpoint-10000/27spp_model_1_serialized.pt",
+        "--checkpoint_path ../environments/torchserve/gpu/artifacts",
+        "--serialized_output ../environments/torchserve/gpu/artifacts/27spp_model_1_serialized.pt",
         "--model_name 27spp_model_1",
+        "--model_file ../environments/torchserve/gpu/artifacts/model.py",
         "--version 1.0",
         "--handler image_classifier",
-        "--export_path models/27spp_model/model_120250130/checkpoint-10000/",
+        "--export_path ../environments/torchserve/gpu/artifacts/",
+        "--extra_files ../environments/torchserve/gpu/artifacts/config.properties",
     ]
     argstr = " ".join(argarr)
 
-    args = parser.parse_args(argstr)
+    print("Parsing args")
+    args = parser.parse_args(argstr.split())
 
     if args.ensemble:
         ensemble_states = {}
@@ -212,6 +223,7 @@ def main():
     run_model_archiver(
         args.model_name,
         args.version,
+        args.model_file,
         args.serialized_output,
         args.export_path,
         args.handler,
@@ -223,7 +235,7 @@ def main():
     print("Model archive created successfully.")
 
 
-# In[ ]:
+# In[5]:
 
 
 main()

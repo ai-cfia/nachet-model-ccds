@@ -5,8 +5,6 @@
 
 
 import torch
-import json
-import tarfile
 import argparse
 from transformers import Swinv2ForImageClassification, AutoImageProcessor
 from PIL import Image
@@ -105,34 +103,6 @@ def validate_serialized_file(
 # In[ ]:
 
 
-def validate_mar_file(mar_file):
-    try:
-        with tarfile.open(mar_file, "r") as tar:
-            members = tar.getnames()
-            if "MAR-INF/manifest.json" not in members:
-                print("ERROR: 'MAR-INF/manifest.json' not found in the MAR file.")
-                return False
-            manifest_member = tar.getmember("MAR-INF/manifest.json")
-            with tar.extractfile(manifest_member) as f:
-                manifest = json.load(f)
-            print("Manifest loaded successfully:")
-            print(json.dumps(manifest, indent=4))
-            # Check for required keys in manifest. Adjust keys as needed.
-            required_keys = ["model", "serializedFile", "handler"]
-            missing_keys = [key for key in required_keys if key not in manifest]
-            if missing_keys:
-                print("Missing keys in manifest:", missing_keys)
-                return False
-            print("All required keys are present in the manifest.")
-            return True
-    except Exception as e:
-        print("Failed to validate MAR file:", e)
-        return False
-
-
-# In[ ]:
-
-
 def main():
     parser = argparse.ArgumentParser(
         description="Validate exported serialized model file by running inference."
@@ -161,7 +131,6 @@ def main():
         default=None,
         help="Path to the index_to_class.json file.",
     )
-    parser.add_argument("--mar_file", type=str, help="Path to the MAR file.")
 
     print("Test args")
     argarr = [
@@ -169,7 +138,6 @@ def main():
         "--serialized_file ../environments/torchserve/gpu/artifacts/27spp_model_1_serialized.pt",
         "--test_file ../environments/torchserve/gpu/artifacts/solanum_nigrum.tiff",
         "--index_to_class ../environments/torchserve/gpu/artifacts/index_to_name.json",
-        "--mar_file ../environments/torchserve/gpu/artifacts/27spp_model_1.mar"
     ]
     argstr = " ".join(argarr)
 
@@ -181,14 +149,11 @@ def main():
         args.checkpoint_path, args.serialized_file, args.test_file, args.index_to_class
     )
 
-    if args.mar_file:
-        validate_mar_file(args.mar_file)
-
 
 # In[ ]:
 
 
-# if __name__ == "__main__":
-#     main()
-main()
+if __name__ == "__main__":
+    main()
+# main()
 

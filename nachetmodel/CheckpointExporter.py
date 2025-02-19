@@ -20,7 +20,14 @@ def load_model(checkpoint_path):
 
 def export_serialized_model(model, output_file):
     # Save the model's state dictionary to output_file
-    torch.save(model.state_dict(), output_file)
+    state_dict = model.state_dict()
+    new_state_dict = {}
+    for k, v in state_dict.items():
+        if not k.startswith("model."):
+            new_state_dict["model." + k] = v
+        else:
+            new_state_dict[k] = v
+    torch.save(new_state_dict, output_file)
 
 
 def export_ensemble_models(model_states, output_file):

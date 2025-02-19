@@ -1,6 +1,4 @@
 import torch
-import json
-import tarfile
 import argparse
 from transformers import Swinv2ForImageClassification, AutoImageProcessor
 from PIL import Image
@@ -121,7 +119,6 @@ def main():
         default=None,
         help="Path to the index_to_class.json file.",
     )
-    parser.add_argument("--mar_file", type=str, help="Path to the MAR file.")
     args = parser.parse_args()
 
     validate_serialized_file(

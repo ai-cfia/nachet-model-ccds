@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 import os
@@ -14,7 +14,7 @@ from transformers import (
 )
 
 
-# In[2]:
+# In[ ]:
 
 
 def load_model(checkpoint_path):
@@ -26,7 +26,15 @@ def load_model(checkpoint_path):
 
 def export_serialized_model(model, output_file):
     # Save the model's state dictionary to output_file
-    torch.save(model.state_dict(), output_file)
+    # torch.save(model.state_dict(), output_file)
+    state_dict = model.state_dict()
+    new_state_dict = {}
+    for k, v in state_dict.items():
+        if not k.startswith("model."):
+            new_state_dict["model." + k] = v
+        else:
+            new_state_dict[k] = v
+    torch.save(new_state_dict, output_file)
 
 
 def export_ensemble_models(model_states, output_file):
@@ -95,7 +103,7 @@ def run_model_archiver(
     subprocess.run(cmd, check=True)
 
 
-# In[3]:
+# In[ ]:
 
 
 def get_parser():
@@ -173,7 +181,7 @@ def get_parser():
     return parser
 
 
-# In[4]:
+# In[ ]:
 
 
 def main():
@@ -235,7 +243,7 @@ def main():
     print("Model archive created successfully.")
 
 
-# In[5]:
+# In[ ]:
 
 
 main()

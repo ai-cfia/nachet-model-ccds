@@ -177,3 +177,4 @@ checkpoint-*/
 models/*
 **/*.amlignore*
 **/*.amltmp
+**/artifacts/

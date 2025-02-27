@@ -198,7 +198,7 @@ def main():
         f"{base_model_path}/config.json",
         f"{base_model_path}/model.safetensors",
         f"{base_model_path}/preprocessor_config.json",
-        f"{base_model_path}/27spp_model_1_serialized.pt",
+        f"{base_model_path}/{model_name}_serialized.pt",
     ]
     filepaths = ",".join(files)
     argarr = [

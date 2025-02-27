@@ -177,7 +177,7 @@ def main():
             print("Exporting model to ONNX format...")
             export_to_onnx(model, args.onnx_output, args.checkpoint_path)
 
-    os.makedirs(args.export_path, exist_ok=True)
+    # os.makedirs(args.export_path, exist_ok=True)
 
     files = [
         f"{args.checkpoint_path}/config.properties",

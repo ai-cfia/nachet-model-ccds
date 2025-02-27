@@ -1,0 +1,25 @@
+models:
+  # Global model parameters
+  min-workers: 1
+  max-workers: 4
+  batch-size: 1
+  max-batch-delay: 100
+  retry-attempts: 1
+  timeout-ms: 3000
+  
+  # Model definitions
+  primary_model:
+    url: primary-classifier.mar
+    min-workers: 1
+    max-workers: 2
+  
+  secondary_model:
+    url: secondary-classifier.mar
+    min-workers: 1
+    max-workers: 2
+
+dag:
+  preprocess: [primary_model]
+  primary_model: [check_trigger_class]
+  check_trigger_class: [secondary_model, return_primary_result]
+  secondary_model: [return_secondary_result]

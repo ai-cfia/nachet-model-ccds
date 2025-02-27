@@ -69,7 +69,6 @@ def export_to_onnx(model, output_file, checkpoint_path):
 def run_model_archiver(
     model_name,
     version,
-    model_file,
     serialized_file,
     export_path,
     handler,
@@ -92,8 +91,6 @@ def run_model_archiver(
         export_path,
         "-f",
     ]
-    if model_file:
-        cmd.extend(["--model-file", model_file])
     if extra_files:
         cmd.extend(["--extra-files", extra_files])
     if requirements:
@@ -115,34 +112,10 @@ def get_parser():
         help="Path to the model checkpoint or directory",
     )
     parser.add_argument(
-        "--serialized_output",
-        type=str,
-        default="model_serialized.pt",
-        help="Output file for serialized model.",
-    )
-    parser.add_argument(
-        "--model_file",
-        type=str,
-        default="",
-        help="Python file containing the model class.",
-    )
-    parser.add_argument(
         "--model_name", type=str, required=True, help="Name for the model archive."
     )
     parser.add_argument(
         "--version", type=str, default="1.0", help="Version for the model archive."
-    )
-    parser.add_argument(
-        "--handler",
-        type=str,
-        default="image_classifier",
-        help="Handler file required for model archiver.",
-    )
-    parser.add_argument(
-        "--export_path",
-        type=str,
-        default="model_store",
-        help="Directory to store the model archive.",
     )
     parser.add_argument(
         "--extra_files",
@@ -157,12 +130,6 @@ def get_parser():
         help="Requirements file for the model archive.",
     )
     parser.add_argument(
-        "--config",
-        type=str,
-        default="",
-        help="Config file for the model archive.",
-    )
-    parser.add_argument(
         "--ensemble",
         action="store_true",
         help="Enable ensemble mode to save multiple models in one serialized file.",
@@ -175,7 +142,7 @@ def get_parser():
     parser.add_argument(
         "--onnx_output",
         type=str,
-        default="model.onnx",
+        default="",
         help="Output file for ONNX model export.",
     )
     return parser
@@ -187,34 +154,34 @@ def get_parser():
 def main():
     print("Exporting model...")
     parser = get_parser()
-    # args = parser.parse_args()
+    args = parser.parse_args()
 
-    print("Test args")
-    base_model_path = "../environments/torchserve/gpu/artifacts"
-    model_name = "27spp_model_1"
-    files = [
-        f"{base_model_path}/config.properties",
-        f"{base_model_path}/index_to_name.json",
-        f"{base_model_path}/config.json",
-        f"{base_model_path}/model.safetensors",
-        f"{base_model_path}/preprocessor_config.json",
-        f"{base_model_path}/{model_name}_serialized.pt",
-    ]
-    filepaths = ",".join(files)
-    argarr = [
-        f"--checkpoint_path {base_model_path}",
-        f"--serialized_output {base_model_path}/{model_name}_serialized.pt",
-        f"--model_name {model_name}",
-        # "--model_file ../environments/torchserve/gpu/artifacts/model.py",
-        "--version 1.0",
-        f"--handler {base_model_path}/model_handler.py",
-        f"--export_path {base_model_path}/",
-        "--extra_files " + filepaths,
-    ]
-    argstr = " ".join(argarr)
+    # print("Test args")
+    # base_model_path = "../environments/torchserve/gpu/artifacts"
+    # model_name = "27spp_model_1"
+    # files = [
+    #     f"{base_model_path}/config.properties",
+    #     f"{base_model_path}/index_to_name.json",
+    #     f"{base_model_path}/config.json",
+    #     f"{base_model_path}/model.safetensors",
+    #     f"{base_model_path}/preprocessor_config.json",
+    #     f"{base_model_path}/{model_name}_serialized.pt",
+    # ]
+    # filepaths = ",".join(files)
+    # argarr = [
+    #     f"--checkpoint_path {base_model_path}",
+    #     f"--serialized_output {base_model_path}/{model_name}_serialized.pt",
+    #     f"--model_name {model_name}",
+    #     # "--model_file ../environments/torchserve/gpu/artifacts/model.py",
+    #     "--version 1.0",
+    #     f"--handler {base_model_path}/model_handler.py",
+    #     f"--export_path {base_model_path}/",
+    #     "--extra_files " + filepaths,
+    # ]
+    # argstr = " ".join(argarr)
 
-    print("Parsing args")
-    args = parser.parse_args(argstr.split())
+    # print("Parsing args")
+    # args = parser.parse_args(argstr.split())
 
     if args.ensemble:
         ensemble_states = {}
@@ -238,17 +205,28 @@ def main():
 
     os.makedirs(args.export_path, exist_ok=True)
 
+    files = [
+        f"{args.checkpoint_path}/config.properties",
+        f"{args.checkpoint_path}/index_to_name.json",
+        f"{args.checkpoint_path}/config.json",
+        f"{args.checkpoint_path}/model.safetensors",
+        f"{args.checkpoint_path}/preprocessor_config.json",
+        # f"{args.checkpoint_path}/{args.model_name}_serialized.pt",
+    ]
+    extra_files = ",".join(files)
+    if args.extra_files:
+        extra_files += "," + args
+
     print("Archiving model via torch-model-archiver...")
     run_model_archiver(
-        args.model_name,
-        args.version,
-        args.model_file,
-        args.serialized_output,
-        args.export_path,
-        args.handler,
-        args.requirements,
-        args.config,
-        args.extra_files,
+        model_name=args.model_name,
+        version=args.version,
+        requirements=args.requirements,
+        export_path=f"{args.checkpoint_path}/",
+        handler=f"{args.checkpoint_path}/model_handler.py",
+        config=f"{args.checkpoint_path}/config.properties",
+        serialized_file=f"{args.checkpoint_path}/{args.model_name}_serialized.pt",
+        extra_files=extra_files,
     )
 
     print("Model archive created successfully.")

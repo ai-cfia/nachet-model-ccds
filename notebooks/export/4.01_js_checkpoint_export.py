@@ -84,8 +84,6 @@ def run_model_archiver(
         model_name,
         "--version",
         version,
-        "--model-file",
-        model_file,
         "--serialized-file",
         serialized_file,
         "--handler",
@@ -94,6 +92,8 @@ def run_model_archiver(
         export_path,
         "-f",
     ]
+    if model_file:
+        cmd.extend(["--model-file", model_file])
     if extra_files:
         cmd.extend(["--extra-files", extra_files])
     if requirements:
@@ -123,7 +123,7 @@ def get_parser():
     parser.add_argument(
         "--model_file",
         type=str,
-        default="model.py",
+        default="",
         help="Python file containing the model class.",
     )
     parser.add_argument(
@@ -190,15 +190,29 @@ def main():
     # args = parser.parse_args()
 
     print("Test args")
+    files = [
+        "../environments/torchserve/gpu/artifacts/config.properties",
+        "../environments/torchserve/gpu/artifacts/index_to_name.json",
+        "../environments/torchserve/gpu/artifacts/config.json",
+        "../environments/torchserve/gpu/artifacts/model.safetensors",
+        "../environments/torchserve/gpu/artifacts/rng_state.pth",
+        "../environments/torchserve/gpu/artifacts/optimizer.pt",
+        "../environments/torchserve/gpu/artifacts/scheduler.pt",
+        "../environments/torchserve/gpu/artifacts/training_args.bin",
+        "../environments/torchserve/gpu/artifacts/trainer_state.json",
+        "../environments/torchserve/gpu/artifacts/preprocessor_config.json",
+        "../environments/torchserve/gpu/artifacts/27spp_model_1_serialized.pt",
+    ]
+    filepaths = ",".join(files)
     argarr = [
         "--checkpoint_path ../environments/torchserve/gpu/artifacts",
         "--serialized_output ../environments/torchserve/gpu/artifacts/27spp_model_1_serialized.pt",
         "--model_name 27spp_model_1",
-        "--model_file ../environments/torchserve/gpu/artifacts/model.py",
+        # "--model_file ../environments/torchserve/gpu/artifacts/model.py",
         "--version 1.0",
-        "--handler image_classifier",
+        "--handler ../environments/torchserve/gpu/artifacts/model_handler.py",
         "--export_path ../environments/torchserve/gpu/artifacts/",
-        "--extra_files ../environments/torchserve/gpu/artifacts/config.properties",
+        "--extra_files " + filepaths,
     ]
     argstr = " ".join(argarr)
 

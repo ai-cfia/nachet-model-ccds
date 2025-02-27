@@ -1,7 +1,8 @@
 FROM ghcr.io/ai-cfia/nachet-model-ccds/serve-gpu-cu121-py311-prod:20250214
 
 # Copy the model file
-COPY artifacts /home/model-server/artifacts/
+COPY artifacts/27spp_model_1.mar /home/model-server/artifacts/
+COPY artifacts/requirements.txt /home/model-server/artifacts/
 
 USER root
 RUN chown -R model-server:model-server /home/model-server/

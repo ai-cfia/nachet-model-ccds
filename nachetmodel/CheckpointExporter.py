@@ -167,12 +167,12 @@ def main():
                 model = load_model(sub_path)
                 ensemble_states[subdir] = model.state_dict()
         print("Serializing ensemble models...")
-        export_ensemble_models(ensemble_states, args.serialized_output)
+        export_ensemble_models(ensemble_states, f"{args.checkpoint_path}/{args.model_name}_serialized.pt")
     else:
         print("Loading model...")
         model = load_model(args.checkpoint_path)
         print("Serializing model...")
-        export_serialized_model(model, args.serialized_output)
+        export_serialized_model(model, f"{args.checkpoint_path}/{args.model_name}_serialized.pt")
         if args.export_onnx:
             print("Exporting model to ONNX format...")
             export_to_onnx(model, args.onnx_output, args.checkpoint_path)
@@ -198,7 +198,6 @@ def main():
         requirements=args.requirements,
         export_path=f"{args.checkpoint_path}/",
         handler=f"{args.checkpoint_path}/model_handler.py",
-        config=f"{args.checkpoint_path}/config.properties",
         serialized_file=f"{args.checkpoint_path}/{args.model_name}_serialized.pt",
         extra_files=extra_files,
     )

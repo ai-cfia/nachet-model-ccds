@@ -77,12 +77,12 @@ class ModelHandler(object):
         except Exception as e:
             print(f"Error loading model with HuggingFace: {e}")
             # Option 2: Fall back to loading serialized model
-            serialized_file = self.manifest['model']['serializedFile']
-            model_pt_path = os.path.join(model_dir, serialized_file)
-            if not os.path.isfile(model_pt_path):
-                raise RuntimeError("Missing the model.pt file")
+            # serialized_file = self.manifest['model']['serializedFile']
+            # model_pt_path = os.path.join(model_dir, serialized_file)
+            # if not os.path.isfile(model_pt_path):
+            #     raise RuntimeError("Missing the model.pt file")
             
-            self.model = torch.jit.load(model_pt_path, map_location=self.device)
+            # self.model = torch.jit.load(model_pt_path, map_location=self.device)
 
         self.initialized = True
 

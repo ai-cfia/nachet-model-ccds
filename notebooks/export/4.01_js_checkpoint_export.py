@@ -190,28 +190,25 @@ def main():
     # args = parser.parse_args()
 
     print("Test args")
+    base_model_path = "../environments/torchserve/gpu/artifacts"
+    model_name = "27spp_model_1"
     files = [
-        "../environments/torchserve/gpu/artifacts/config.properties",
-        "../environments/torchserve/gpu/artifacts/index_to_name.json",
-        "../environments/torchserve/gpu/artifacts/config.json",
-        "../environments/torchserve/gpu/artifacts/model.safetensors",
-        # "../environments/torchserve/gpu/artifacts/rng_state.pth",
-        # "../environments/torchserve/gpu/artifacts/optimizer.pt",
-        # "../environments/torchserve/gpu/artifacts/scheduler.pt",
-        # "../environments/torchserve/gpu/artifacts/training_args.bin",
-        # "../environments/torchserve/gpu/artifacts/trainer_state.json",
-        "../environments/torchserve/gpu/artifacts/preprocessor_config.json",
-        "../environments/torchserve/gpu/artifacts/27spp_model_1_serialized.pt",
+        f"{base_model_path}/config.properties",
+        f"{base_model_path}/index_to_name.json",
+        f"{base_model_path}/config.json",
+        f"{base_model_path}/model.safetensors",
+        f"{base_model_path}/preprocessor_config.json",
+        f"{base_model_path}/27spp_model_1_serialized.pt",
     ]
     filepaths = ",".join(files)
     argarr = [
-        "--checkpoint_path ../environments/torchserve/gpu/artifacts",
-        "--serialized_output ../environments/torchserve/gpu/artifacts/27spp_model_1_serialized.pt",
-        "--model_name 27spp_model_1",
+        f"--checkpoint_path {base_model_path}",
+        f"--serialized_output {base_model_path}/{model_name}_serialized.pt",
+        f"--model_name {model_name}",
         # "--model_file ../environments/torchserve/gpu/artifacts/model.py",
         "--version 1.0",
-        "--handler ../environments/torchserve/gpu/artifacts/model_handler.py",
-        "--export_path ../environments/torchserve/gpu/artifacts/",
+        f"--handler {base_model_path}/model_handler.py",
+        f"--export_path {base_model_path}/",
         "--extra_files " + filepaths,
     ]
     argstr = " ".join(argarr)

@@ -154,34 +154,21 @@ def get_parser():
 def main():
     print("Exporting model...")
     parser = get_parser()
-    args = parser.parse_args()
+    # args = parser.parse_args()
 
-    # print("Test args")
-    # base_model_path = "../environments/torchserve/gpu/artifacts"
-    # model_name = "27spp_model_1"
-    # files = [
-    #     f"{base_model_path}/config.properties",
-    #     f"{base_model_path}/index_to_name.json",
-    #     f"{base_model_path}/config.json",
-    #     f"{base_model_path}/model.safetensors",
-    #     f"{base_model_path}/preprocessor_config.json",
-    #     f"{base_model_path}/{model_name}_serialized.pt",
-    # ]
-    # filepaths = ",".join(files)
-    # argarr = [
-    #     f"--checkpoint_path {base_model_path}",
-    #     f"--serialized_output {base_model_path}/{model_name}_serialized.pt",
-    #     f"--model_name {model_name}",
-    #     # "--model_file ../environments/torchserve/gpu/artifacts/model.py",
-    #     "--version 1.0",
-    #     f"--handler {base_model_path}/model_handler.py",
-    #     f"--export_path {base_model_path}/",
-    #     "--extra_files " + filepaths,
-    # ]
-    # argstr = " ".join(argarr)
+    print("Test args")
+    base_model_path = "../environments/torchserve/gpu/artifacts"
+    model_name = "27spp_model_1"
 
-    # print("Parsing args")
-    # args = parser.parse_args(argstr.split())
+    argarr = [
+        f"--checkpoint_path {base_model_path}",
+        f"--model_name {model_name}",
+        f"--version 1.0",
+    ]
+    argstr = " ".join(argarr)
+
+    print("Parsing args")
+    args = parser.parse_args(argstr.split())
 
     if args.ensemble:
         ensemble_states = {}

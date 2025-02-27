@@ -193,7 +193,7 @@ def main():
     # os.makedirs(args.export_path, exist_ok=True)
 
     files = [
-        f"{args.checkpoint_path}/config.properties",
+        # f"{args.checkpoint_path}/config.properties",
         f"{args.checkpoint_path}/index_to_name.json",
         f"{args.checkpoint_path}/config.json",
         f"{args.checkpoint_path}/model.safetensors",

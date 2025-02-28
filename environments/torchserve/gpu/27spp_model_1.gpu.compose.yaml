@@ -3,11 +3,11 @@ services:
     build: 
       context: .
       dockerfile: 27spp_model_1.gpu.dockerfile
-    image: local/ai-cfia/nachet-model-ccds/gpu-classifier-27spp-model-1:20250214
+    image: local/ai-cfia/nachet-model-ccds/gpu-classifier-27spp-model-1:20250227
     restart: no
     container_name: gpu-classifier-27spp-model-1
-    volumes: 
-      - ../../../:/project
+    # volumes: 
+      # - ../../../:/project
       # - ../models:/home/model-server/model-store
       # - /tmp:/tmp
     ports:

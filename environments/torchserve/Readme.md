@@ -14,6 +14,9 @@ export CR_PAT=sometoken
 echo $CR_PAT | docker login ghcr.io -u ChromaticPanic --password-stdin
 docker push ghcr.io/ai-cfia/nachet-model-ccds/serve-gpu-cu121-py311-prod:20250214
 docker push ghcr.io/ai-cfia/nachet-model-ccds/serve-cpu-py311-prod:20250214
+
+docker tag local/ai-cfia/nachet-model-ccds/gpu-classifier-27spp-model-1:20250227 ghcr.io/ai-cfia/nachet-model-ccds/gpu-classifier-27spp-model-1:20250227
+docker push ghcr.io/ai-cfia/nachet-model-ccds/gpu-classifier-27spp-model-1:20250227
 ```
 
 cpu is based on ubuntu 24.04

@@ -10,9 +10,9 @@ else
     eval "$@"
 fi
 
-sleep 45
-echo "Registering workflow"
-curl -X POST "http://0.0.0.0:8081/workflows?url=file:///home/model-server/ensemble_27spp.war"
+# sleep 45
+# echo "Registering workflow"
+# curl -X POST "http://0.0.0.0:8081/workflows?url=file:///home/model-server/ensemble_27spp.war"
 
 # prevent docker exit
 tail -f /dev/null

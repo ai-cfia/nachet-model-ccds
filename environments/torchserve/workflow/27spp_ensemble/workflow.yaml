@@ -1,0 +1,31 @@
+models:
+  # Global model params
+  min-workers: 1
+  max-workers: 2
+  batch-size: 1
+  max-batch-delay: 5000
+  retry-attempts: 2
+  timeout-ms: 30000
+  
+  primary_model:
+    url: 27spp_model_e_1.mar
+    batch-size: 1
+    min-workers: 1
+  
+  secondary_model:
+    url: 15spp_model_e_1.mar
+    batch-size: 1
+    min-workers: 1
+
+dag:
+  # For debugging curl uploads, directly call the model
+  primary_model: [postprocess]
+  
+  # Original flow (once working)
+  # preprocess: [primary_model]
+  # primary_model: [postprocess]
+  
+  # Final configuration
+  # preprocess: [primary_model]
+  # primary_model: [secondary_model]
+  # secondary_model: [postprocess]

@@ -154,9 +154,8 @@ class ModelHandler(object):
                 class_name = self.idx_to_class[str(idx)] if self.idx_to_class else str(idx)
                 
                 top_predictions.append({
-                    'class': class_name,
-                    'class_id': idx,
-                    'confidence': prob
+                    'label': class_name,
+                    'score': prob
                 })
             
             result.append(top_predictions)

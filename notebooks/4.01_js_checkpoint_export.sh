@@ -1,17 +1,17 @@
 #!/bin/bash
 
-python3 nachetmodel/CheckpointExporter.py \
-  --checkpoint_path models/27spp_model/model_120250130/checkpoint-9000 \
+python3 /project/nachetmodel/CheckpointExporter.py \
+  --checkpoint_path /project/models/27spp_model/model_120250130/checkpoint-9000 \
   --model_name 27spp_model_1 \
   --version 1.0
 
-python3 nachetmodel/CheckpointExporter.py \
-  --checkpoint_path models/15spp_zoom_level_validation_models/6_seed_model_120250130/checkpoint-20500 \
+python3 /project/nachetmodel/CheckpointExporter.py \
+  --checkpoint_path /project/models/15spp_zoom_level_validation_models/6_seed_model_120250130/checkpoint-20500 \
   --model_name 15spp_model_1 \
   --version 1.0
 
-\cp -rf models/27spp_model/model_120250130/checkpoint-9000/27spp_model_1.mar environments/torchserve/gpu/artifacts/
-\cp -rf models/15spp_zoom_level_validation_models/6_seed_model_120250130/checkpoint-20500/15spp_model_1.mar environments/torchserve/gpu/artifacts/
+\cp -rf /project/models/27spp_model/model_120250130/checkpoint-9000/27spp_model_1.mar /project/environments/torchserve/gpu/artifacts/
+\cp -rf /project/models/15spp_zoom_level_validation_models/6_seed_model_120250130/checkpoint-20500/15spp_model_1.mar /project/environments/torchserve/gpu/artifacts/
 
 # python3 nachetmodel/CheckpointExporter.py \
 #   --checkpoint_path models/27spp_model/model_120250130/checkpoint-9000-ensemble \

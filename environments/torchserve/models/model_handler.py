@@ -1,6 +1,7 @@
 import os
 import torch
 import json
+import base64
 import torch.nn.functional as F
 from transformers import Swinv2ForImageClassification, AutoImageProcessor
 from torchvision.transforms import Compose, Resize, CenterCrop, ToTensor, Normalize
@@ -179,4 +180,4 @@ class ModelHandler(object):
         # Postprocess
         result = self.postprocess(logits)
         
-        return [result]
+        return result

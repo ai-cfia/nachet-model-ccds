@@ -90,12 +90,16 @@ class ModelHandler(object):
         """
         Preprocess the input data
         """
+        # Standard input handling for direct prediction requests
         images = []
         for row in data:
             # Load image
             image = row.get("data") or row.get("body")
             if isinstance(image, (bytes, bytearray)):
                 image = Image.open(io.BytesIO(image)).convert('RGB')
+            elif isinstance(image, dict) and "image_data" in image:
+                image_bytes = base64.b64decode(image["image_data"])
+                image = Image.open(io.BytesIO(image_bytes)).convert('RGB')
             
             # Apply transformations
             if self.transform:

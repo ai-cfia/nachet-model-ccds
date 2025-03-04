@@ -178,3 +178,4 @@ models/*
 **/*.amlignore*
 **/*.amltmp
 **/artifacts/
+.vscode/settings.json

@@ -27,5 +27,4 @@ onnx
 onnxruntime
 onnxscript
 torch-model-archiver
-torch-workflow-archiver
 -e .

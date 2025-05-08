@@ -4,16 +4,22 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
+      args:
+        USERNAME: ${SSH_USER:-nachetuser}
+      secrets:
+        - user_password
     image: ghcr.io/ai-cfia/nachet-model-ccds/pytorch-gpu-24-devenv:2025031401
     restart: no
     container_name: pytorch-gpu-24
+    command: ["/usr/sbin/sshd", "-D"]  # Explicitly set the command to run SSH daemon
     env_file:
       - .env
     volumes: 
       - ../../:/project
       # - /tmp:/tmp
-    # ports:
-    #   - '8888:8888'
+    ports:
+      - '2222:22'
+      # - '8888:8888'
     shm_size: '1gb'
     ulimits:
       stack: 67108864
@@ -25,3 +31,7 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
+
+secrets:
+  user_password:
+    environment: SSH_PASSWORD

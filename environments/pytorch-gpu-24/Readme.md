@@ -11,7 +11,7 @@ cd nachet-model-ccds/environments/pytorch-gpu-24
 docker build --no-cache --secret id=user_password,env=SSH_PASSWORD -t $IMAGE_NAME .
 # docker build -t pytorch-gpu-24-devenv:2025050801 .
 # docker tag local/ai-cfia/nachet-model-ccds/$IMAGE_NAME ghcr.io/ai-cfia/nachet-model-ccds/$IMAGE_NAME
-docker $IMAGE_NAME
+docker push $IMAGE_NAME
 
 code tunnel --accept-terms-of-service
 ```

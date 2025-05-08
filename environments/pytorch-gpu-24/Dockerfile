@@ -11,11 +11,13 @@ WORKDIR /nachetenv
 # Install required packages
 RUN apt update && apt install -y screen sudo openssh-server
 
-# Configure SSH and create user with BuildKit secret
+# Configure SSH, generate SSH host keys, and create user with BuildKit secret
 RUN --mount=type=secret,id=user_password \
     mkdir -p /var/run/sshd && \
     echo 'PermitRootLogin no' >> /etc/ssh/sshd_config && \
     echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config && \
+    # Generate SSH host keys
+    ssh-keygen -A && \
     # Create user with sudo privileges
     useradd -m -s /bin/bash ${USERNAME} && \
     echo "${USERNAME}:$(cat /run/secrets/user_password 2>/dev/null || cat /dev/null)" | chpasswd && \

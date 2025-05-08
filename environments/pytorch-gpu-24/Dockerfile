@@ -16,6 +16,7 @@ RUN --mount=type=secret,id=user_password \
     mkdir -p /var/run/sshd && \
     echo 'PermitRootLogin no' >> /etc/ssh/sshd_config && \
     echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config && \
+    echo 'UsePrivilegeSeparation no' >> /etc/ssh/sshd_config && \
     # Generate SSH host keys
     ssh-keygen -A && \
     # Create user with sudo privileges

@@ -1,5 +1,5 @@
 # https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch
-FROM nvcr.io/nvidia/pytorch:24.12-py3
+FROM nvcr.io/nvidia/pytorch:25.04-py3
 
 # Define build arguments for username and password
 ARG USERNAME=nachetuser

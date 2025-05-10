@@ -9,7 +9,7 @@ scikit-learn==1.5.2
 nbqa==1.9.1
 seaborn==0.13.2
 mypy==1.14.1
-pytest==8.1.1
+pytest==8.3.5
 ipywidgets==8.1.5
 huggingface_hub
 transformers==4.48.1

@@ -16,7 +16,7 @@ huggingface_hub==0.29.3
 transformers==4.49.0
 accelerate==1.5.2
 evaluate==0.4.3
-datasets==3.4.0
+datasets==3.6.0
 peft==0.14.0
 nvidia-ml-py3==7.352.0
 ipdb==0.13.13
